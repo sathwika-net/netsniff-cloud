@@ -1,4 +1,11 @@
-fastapi
-supabase
-python-dotenv
-uvicorn
+fastapi==0.110.0
+uvicorn==0.29.0
+python-dotenv==1.0.1
+supabase==2.3.4
+httpx==0.24.1
+gotrue==2.1.0
+realtime==1.0.2
+postgrest==0.13.2
+storage3==0.7.0
+supafunc==0.3.3
+websockets==11.0.3
