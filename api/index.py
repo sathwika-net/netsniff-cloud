@@ -66,3 +66,34 @@ def ingest(payload: IngestPayload, x_api_key: str = Header(...)):
     supabase.table("packets").insert(packets_to_insert).execute()
 
     return {"status": "ok", "received": len(payload.packets)}
+
+@app.get("/api/packets")
+def get_packets(
+    authorization: str = Header(...),
+    limit: int = 100,
+    protocol: Optional[str] = None
+):
+    # Step 1: Pull the JWT out of the "Bearer <token>" header
+    token = authorization.replace("Bearer ", "")
+
+    # Step 2: Validate the token and find out which user is asking
+    try:
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    # Step 3: Fetch this user's packets, newest first.
+    # We use the service key (bypasses RLS), so we MUST filter by user_id ourselves.
+    query = (
+        supabase.table("packets")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("captured_at", desc=True)
+        .limit(limit)
+    )
+    if protocol:
+        query = query.eq("protocol", protocol)
+
+    result = query.execute()
+    return {"packets": result.data, "count": len(result.data)}
