@@ -97,3 +97,49 @@ def get_packets(
 
     result = query.execute()
     return {"packets": result.data, "count": len(result.data)}
+
+@app.get("/api/stats")
+def get_stats(authorization: str = Header(...)):
+    # Step 1: Validate JWT, find the user (same pattern as /api/packets)
+    token = authorization.replace("Bearer ", "")
+    try:
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    # Step 2: Pull this user's recent packets to aggregate.
+    # Cap at 1000 so we never load an unbounded amount into memory.
+    result = (
+        supabase.table("packets")
+        .select("protocol, dst_ip")
+        .eq("user_id", user_id)
+        .order("captured_at", desc=True)
+        .limit(1000)
+        .execute()
+    )
+    packets = result.data
+
+    # Step 3: Count by protocol (for the pie chart)
+    protocol_counts = {}
+    for p in packets:
+        proto = p.get("protocol", "OTHER")
+        protocol_counts[proto] = protocol_counts.get(proto, 0) + 1
+
+    # Step 4: Count by destination IP, keep the top 10 (for the bar chart)
+    dst_counts = {}
+    for p in packets:
+        dst = p.get("dst_ip")
+        if dst:
+            dst_counts[dst] = dst_counts.get(dst, 0) + 1
+    top_destinations = sorted(
+        dst_counts.items(), key=lambda x: x[1], reverse=True
+    )[:10]
+
+    return {
+        "total_packets": len(packets),
+        "by_protocol": protocol_counts,
+        "top_destinations": [
+            {"dst_ip": ip, "count": count} for ip, count in top_destinations
+        ],
+    }
