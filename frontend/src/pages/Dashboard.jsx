@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import TrafficCharts from "../components/TrafficCharts";
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -28,7 +29,7 @@ function Dashboard() {
           </button>
         </div>
       </div>
-      <p className="text-slate-400">You're logged in. Packet feed coming soon.</p>
+      <TrafficCharts />
     </div>
   )
 }
