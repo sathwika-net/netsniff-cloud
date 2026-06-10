@@ -51,7 +51,7 @@ def ingest(payload: IngestPayload, x_api_key: str = Header(...)):
     key_hash = hashlib.sha256(x_api_key.encode()).hexdigest()
 
     # Step 2: Look up the hash in Supabase to find which user this belongs to
-    result = supabase.table("api_keys").select("user_id").eq("key_hash", key_hash).single().execute()
+    result = supabase.table("api_keys").select("user_id").eq("key_hash", key_hash).limit(1).execute()
 
     if not result.data:
         raise HTTPException(status_code=401, detail="Invalid API key")
