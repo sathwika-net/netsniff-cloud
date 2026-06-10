@@ -56,7 +56,7 @@ def ingest(payload: IngestPayload, x_api_key: str = Header(...)):
     if not result.data:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
-    user_id = result.data["user_id"]
+    user_id = result.data[0]["user_id"]
 
     # Step 3: Insert all packets into Supabase
     packets_to_insert = [
