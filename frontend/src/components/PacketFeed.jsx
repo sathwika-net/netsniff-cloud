@@ -6,16 +6,20 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 export default function PacketFeed() {
   const [packets, setPackets] = useState([]);
   const [error, setError] = useState(null);
+  const [protocol, setProtocol] = useState("ALL"); // selected filter
   const timer = useRef(null);
 
   useEffect(() => {
     async function loadPackets() {
-      // Get the logged-in user's session token (JWT) — same as the charts
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      // Build the URL — only add &protocol=... when a specific one is picked
+      let url = `${API_URL}/api/packets?limit=100`;
+      if (protocol !== "ALL") url += `&protocol=${protocol}`;
+
       try {
-        const res = await fetch(`${API_URL}/api/packets?limit=100`, {
+        const res = await fetch(url, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
         if (!res.ok) throw new Error(`API ${res.status}`);
@@ -26,16 +30,29 @@ export default function PacketFeed() {
       }
     }
 
-    loadPackets();                                   // run once right away
-    timer.current = setInterval(loadPackets, 2000);  // then refresh every 2s
-    return () => clearInterval(timer.current);        // stop polling when leaving the page
-  }, []);
+    loadPackets();
+    timer.current = setInterval(loadPackets, 2000);
+    return () => clearInterval(timer.current);
+  }, [protocol]); // re-run whenever the filter changes
 
   if (error) return <p className="text-red-400">Couldn't load packets: {error}</p>;
 
   return (
     <div className="bg-slate-800 rounded p-4 mt-6">
-      <h2 className="text-lg font-semibold mb-3">Live Packet Feed</h2>
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-lg font-semibold">Live Packet Feed</h2>
+        <select
+          value={protocol}
+          onChange={(e) => setProtocol(e.target.value)}
+          className="bg-slate-700 text-white text-sm rounded px-2 py-1"
+        >
+          <option value="ALL">All protocols</option>
+          <option value="TCP">TCP</option>
+          <option value="UDP">UDP</option>
+          <option value="ICMP">ICMP</option>
+          <option value="OTHER">OTHER</option>
+        </select>
+      </div>
       <div className="overflow-auto max-h-96">
         <table className="w-full text-sm text-left">
           <thead className="text-slate-400 border-b border-slate-700">
@@ -60,7 +77,7 @@ export default function PacketFeed() {
           </tbody>
         </table>
         {packets.length === 0 && (
-          <p className="text-slate-400 py-3">No packets yet. Run the agent to see live traffic.</p>
+          <p className="text-slate-400 py-3">No packets match this filter yet.</p>
         )}
       </div>
     </div>
