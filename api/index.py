@@ -43,7 +43,13 @@ class IngestPayload(BaseModel):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    # Touch the database so Supabase's free tier doesn't auto-pause from inactivity.
+    try:
+        supabase.table("api_keys").select("id").limit(1).execute()
+        db_status = "ok"
+    except Exception:
+        db_status = "error"
+    return {"status": "ok", "db": db_status}
 
 @app.post("/api/ingest")
 def ingest(payload: IngestPayload, x_api_key: str = Header(...)):
