@@ -215,3 +215,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# NetSniff agent secrets — never commit
+agent/config.json
