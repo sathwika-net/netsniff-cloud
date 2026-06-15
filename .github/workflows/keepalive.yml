@@ -1,0 +1,13 @@
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: "0 12 * * *"   # daily at 12:00 UTC — keeps the free-tier DB from auto-pausing
+  workflow_dispatch:        # lets you run it manually from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint (runs a DB query, keeping Supabase active)
+        run: curl --fail --silent --show-error https://netsniff-cloud.vercel.app/api/health
