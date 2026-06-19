@@ -1,6 +1,6 @@
 # NetSniff Cloud
 
-**A multi-tenant SaaS for live network traffic monitoring.** A lightweight agent runs on your own machine, captures network packet metadata, and streams it to a cloud dashboard you can watch from any browser — with every user's data fully isolated from every other user's.
+- A multi-tenant SaaS for live network traffic monitoring. A lightweight agent runs on your own machine, captures network packet metadata, and streams it to a cloud dashboard you can watch from any browser with every user's data fully isolated from every other user's.
 
 🔗 **Live demo:** [netsniff-cloud.vercel.app](https://netsniff-cloud.vercel.app)
 
